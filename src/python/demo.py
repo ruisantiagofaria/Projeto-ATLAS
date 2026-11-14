@@ -1,4 +1,4 @@
-from atlas import Solicitacao, TabelaHash
+from atlas import Solicitacao, TabelaHash, BST, inserir_lote_pelo_meio
 
 s = Solicitacao(1001, "Maua", "TI", 20260105)
 s.registrar_evento("ALTERACAO", "EM_ANDAMENTO", "atendente assumiu")
@@ -34,3 +34,22 @@ for protocolo in range(1, 201):
     com.inserir(protocolo, protocolo)
 print("sem redimensionar: m=%d fator=%.2f maior cadeia=%d" % (sem.m, sem.fator_carga(), sem.maior_cadeia()))
 print("com redimensionar: m=%d fator=%.2f maior cadeia=%d" % (com.m, com.fator_carga(), com.maior_cadeia()))
+
+print("\n--- BST: consulta por periodo ---")
+arvore = BST()
+arvore.inserir((20260105, 1001), 1001)
+arvore.inserir((20260110, 1002), 1002)
+arvore.inserir((20260120, 1003), 1003)
+arvore.inserir((20260210, 1004), 1004)
+print("protocolos de 01/01 a 31/01:", arvore.consultar_periodo(20260101, 20260131))
+print("inserir (20260105, 1001) de novo:", arvore.inserir((20260105, 1001), 1001))
+
+print("\n--- BST: lote ordenado da migracao ---")
+itens = [((20260101 + i, 2000 + i), 2000 + i) for i in range(15)]
+ingenua = BST()
+for chave, protocolo in itens:
+    ingenua.inserir(chave, protocolo)
+balanceada = BST()
+inserir_lote_pelo_meio(balanceada, itens, 0, len(itens) - 1)
+print("15 registros em ordem  -> altura", ingenua.altura())
+print("15 registros pelo meio -> altura", balanceada.altura())

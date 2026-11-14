@@ -97,3 +97,85 @@ class TabelaHash:
             if tam > maior:
                 maior = tam
         return maior
+
+    # ===== 3. BST: indice ordenado por (data, protocolo) =====
+class NoBST:
+    def __init__(self, chave, protocolo):
+        self.chave = chave          
+        self.protocolo = protocolo
+        self.esq = None
+        self.dir = None
+
+
+class BST:
+    def __init__(self):
+        self.raiz = None
+        self.tamanho = 0
+
+    def inserir(self, chave, protocolo):
+        """Devolve False se a chave ja existe (duplicados ignorados)."""
+        novo = NoBST(chave, protocolo)
+        if self.raiz is None:
+            self.raiz = novo
+            self.tamanho = 1
+            return True
+        atual = self.raiz
+        while True:
+            if chave < atual.chave:
+                if atual.esq is None:
+                    atual.esq = novo
+                    break
+                atual = atual.esq
+            elif chave > atual.chave:
+                if atual.dir is None:
+                    atual.dir = novo
+                    break
+                atual = atual.dir
+            else:
+                return False
+        self.tamanho += 1
+        return True
+
+    def altura(self):
+        if self.raiz is None:
+            return 0
+        maior = 0
+        pilha = [(self.raiz, 1)]
+        while pilha:
+            no, nivel = pilha.pop()
+            if nivel > maior:
+                maior = nivel
+            if no.esq is not None:
+                pilha.append((no.esq, nivel + 1))
+            if no.dir is not None:
+                pilha.append((no.dir, nivel + 1))
+        return maior
+
+    def consultar_periodo(self, data_ini, data_fim):
+        """Protocolos abertos entre data_ini e data_fim, em ordem de data."""
+        saida = []
+        self._periodo(self.raiz, data_ini, data_fim, saida)
+        return saida
+
+    def _periodo(self, no, d1, d2, saida):
+        if no is None:
+            return
+        data = no.chave[0]
+        if d1 <= data:                      
+            self._periodo(no.esq, d1, d2, saida)
+        if d1 <= data <= d2:
+            saida.append(no.protocolo)
+        if data <= d2:                      
+            self._periodo(no.dir, d1, d2, saida)
+
+
+def inserir_lote_pelo_meio(arvore, itens, ini, fim):
+    """Para lotes ja ordenados: insere o elemento do meio primeiro e depois
+    cada metade. `itens` e uma lista de (chave, protocolo) ordenada."""
+    if ini > fim:
+        return
+    meio = (ini + fim) // 2
+    chave, protocolo = itens[meio]
+    arvore.inserir(chave, protocolo)
+    inserir_lote_pelo_meio(arvore, itens, ini, meio - 1)
+    inserir_lote_pelo_meio(arvore, itens, meio + 1, fim)
