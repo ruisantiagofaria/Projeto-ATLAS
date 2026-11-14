@@ -1,4 +1,4 @@
-from atlas import Solicitacao, TabelaHash, BST, inserir_lote_pelo_meio
+from atlas import Solicitacao, TabelaHash, BST, inserir_lote_pelo_meio, Atlas
 
 s = Solicitacao(1001, "Maua", "TI", 20260105)
 s.registrar_evento("ALTERACAO", "EM_ANDAMENTO", "atendente assumiu")
@@ -53,3 +53,23 @@ balanceada = BST()
 inserir_lote_pelo_meio(balanceada, itens, 0, len(itens) - 1)
 print("15 registros em ordem  -> altura", ingenua.altura())
 print("15 registros pelo meio -> altura", balanceada.altura())
+
+print("\n--- Atlas integrado ---")
+atlas = Atlas()
+print("abrir 1001:", atlas.abrir(1001, "Maua", "Infraestrutura", 20260105))
+print("abrir 1002:", atlas.abrir(1002, "Santo Andre", "RH", 20260110))
+print("abrir 1001 de novo (reenvio):", atlas.abrir(1001, "Maua", "Infraestrutura", 20260105))
+print("total:", atlas.total())
+
+atlas.alterar(1001, "EM_ANDAMENTO", "atendente assumiu")
+atlas.cancelar(1001, "pedido duplicado")
+print("alterar apos cancelar:", atlas.alterar(1001, "ABERTA", "tentativa"))
+print("situacao de 1001:", atlas.buscar(1001).situacao_atual())
+for evento in atlas.buscar(1001).listar_historico():
+    print("  ", evento)
+
+atlas.abrir(1003, "Maua", "TI", 20260120)
+atlas.abrir(1004, "Maua", "TI", 20260210)
+print("abertas em janeiro:")
+for sol in atlas.consultar_periodo(20260101, 20260131):
+    print("  protocolo", sol.protocolo, "| data", sol.data, "|", sol.situacao_atual())

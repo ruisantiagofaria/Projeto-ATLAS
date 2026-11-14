@@ -179,3 +179,44 @@ def inserir_lote_pelo_meio(arvore, itens, ini, fim):
     arvore.inserir(chave, protocolo)
     inserir_lote_pelo_meio(arvore, itens, ini, meio - 1)
     inserir_lote_pelo_meio(arvore, itens, meio + 1, fim)
+
+    # ===== FACHADA: junta as tres estruturas =====
+class Atlas:
+    def __init__(self):
+        self.indice = TabelaHash()    # protocolo -> Solicitacao
+        self.por_data = BST()         # (data, protocolo) -> protocolo
+
+    def abrir(self, protocolo, unidade, categoria, data):
+        """False se o protocolo ja existe (reenvio)."""
+        if self.indice.buscar(protocolo) is not None:
+            return False
+        solicitacao = Solicitacao(protocolo, unidade, categoria, data)
+        self.indice.inserir(protocolo, solicitacao)
+        self.por_data.inserir((data, protocolo), protocolo)
+        return True
+
+    def buscar(self, protocolo):
+        return self.indice.buscar(protocolo)
+
+    def alterar(self, protocolo, situacao, descricao):
+        """Nao altera o passado: acrescenta um evento novo no topo do historico.
+        So muda a situacao; protocolo e data nao mudam, entao os indices
+        continuam validos. Solicitacao cancelada nao aceita novas alteracoes."""
+        s = self.buscar(protocolo)
+        if s is None or s.situacao_atual() == "CANCELADA":
+            return False
+        s.registrar_evento("ALTERACAO", situacao, descricao)
+        return True
+
+    def cancelar(self, protocolo, motivo):
+        s = self.buscar(protocolo)
+        if s is None or s.situacao_atual() == "CANCELADA":
+            return False
+        s.registrar_evento("CANCELAMENTO", "CANCELADA", motivo)
+        return True
+
+    def consultar_periodo(self, data_ini, data_fim):
+        return [self.buscar(p) for p in self.por_data.consultar_periodo(data_ini, data_fim)]
+
+    def total(self):
+        return self.indice.tamanho
